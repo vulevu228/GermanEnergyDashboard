@@ -1,154 +1,152 @@
 # Strommarkt-Dashboard Deutschland
 
-Eine kleine Python-Pipeline, die über sieben Jahre deutscher Stromdaten von der
-**energy-charts.info**-API (betrieben vom Fraunhofer ISE) abruft, als Parquet
-speichert und in einen Power-BI-Report einspeist – Strommix, Großhandelspreise,
-grenzüberschreitender Handel und installierte Leistung.
+Ein kleines Python-Skript holt Stromdaten aus Deutschland von der API von
+**energy-charts.info** (vom Fraunhofer ISE). Es speichert die Daten als
+Parquet-Dateien. Ein Power-BI-Report zeigt sie dann als Grafiken: Strommix,
+Preise, Handel mit den Nachbarländern und installierte Leistung.
 
-Zeitraum: **Januar 2019 – 7. September 2026** (2026 ist also ein Rumpfjahr). Die
-Erzeugung liegt in 15-Minuten-Auflösung vor, die Preise stündlich.
+Zeitraum: **Januar 2019 bis 7. September 2026.** 2026 ist noch nicht zu Ende,
+also ist es kein ganzes Jahr. Die Stromdaten gibt es alle 15 Minuten, die Preise
+jede Stunde.
 
 ## Das Dashboard
 
 ![Strom-Dashboard Deutschland, Überblick 2019–2026](images/dashboard-overview.png)
 
-Jährliche Gesamterzeugung, die Kurve des durchschnittlichen Großhandelspreises,
-der Strommix aus Erneuerbaren und konventioneller Erzeugung sowie der Stromhandel
-mit den Nachbarländern. Der Datums-Slider oben steuert alle Visuals gleichzeitig –
-so lässt sich die ganze Seite auf ein einzelnes Ereignis eingrenzen.
+Die Seite zeigt: den Strom pro Jahr, den mittleren Preis über die Zeit, den
+Strommix aus erneuerbarer und fossiler Erzeugung und den Handel mit den
+Nachbarländern. Mit dem Datums-Regler oben wählt man einen Zeitraum. Dann ändern
+sich alle Grafiken zusammen.
 
-## Worum es geht
+## Warum dieses Projekt
 
-Deutschland stemmt die größte Energiewende aller großen Industrienationen, und
-alles davon steckt in öffentlichen Daten: der Gaspreisschock 2022, die Abschaltung
-der letzten Kernkraftwerke, die Verdopplung der Solarkapazität und negative
-Strompreise, die von der Ausnahme zur Regel werden. Dieses Projekt macht aus der
-rohen API etwas Lesbares.
+In Deutschland läuft eine große Energiewende. Vieles davon sieht man in offenen
+Daten: den hohen Gaspreis 2022, das Aus für die letzten Atomkraftwerke, den
+schnellen Ausbau von Solar und immer mehr Stunden mit negativen Strompreisen.
+Dieses Projekt macht aus den API-Daten Grafiken, die man leicht lesen kann.
 
 ## Die Daten
 
-Alles kommt von `https://api.energy-charts.info` – **kein API-Key, keine Anmeldung.**
-Vier Endpunkte, je eine Parquet-Datei:
+Alle Daten kommen von `https://api.energy-charts.info`. **Man braucht keinen
+API-Key und keine Anmeldung.** Es sind vier Endpunkte, pro Endpunkt eine
+Parquet-Datei:
 
-| Datei | Endpunkt | Inhalt |
+| Datei | Endpunkt | Was drin ist |
 | --- | --- | --- |
-| `data/de_public_power.parquet` | `/public_power` | Nettostromerzeugung nach Quelle (Wind, Solar, Kohle, Gas, Kernenergie, …) plus Last und die Erneuerbaren-Anteil-Reihen, im 15-Minuten-Takt |
-| `data/de_price.parquet` | `/price` | Day-Ahead-Großhandelspreis, EUR/MWh, Gebotszone `DE-LU`, stündlich |
-| `data/de_cbet.parquet` | `/cbet` | Grenzüberschreitender geplanter Handel in GW, eine Spalte je Nachbarland (+ = Import nach Deutschland, − = Export) |
-| `data/de_installed_power_monthly.parquet`, `..._yearly.parquet` | `/installed_power` | Installierte Leistung nach Quelle, GW, zum Monats- bzw. Jahresende |
+| `data/de_public_power.parquet` | `/public_power` | Strom pro Quelle (Wind, Solar, Kohle, Gas, Atom …), dazu die Last und der Anteil der Erneuerbaren. Alle 15 Minuten. |
+| `data/de_price.parquet` | `/price` | Börsenpreis für den nächsten Tag, in EUR/MWh, für die Preiszone `DE-LU`. Pro Stunde. |
+| `data/de_cbet.parquet` | `/cbet` | Geplanter Stromhandel in GW, eine Spalte pro Nachbarland (+ heißt Import nach Deutschland, − heißt Export). |
+| `data/de_installed_power_monthly.parquet`, `..._yearly.parquet` | `/installed_power` | Installierte Leistung pro Quelle in GW, pro Monat und pro Jahr. |
 
-Die Parquet-Dateien sind klein (~25 MB insgesamt) und liegen direkt im Repo –
-kein separater Download nötig. Die Daten stehen unter CC BY 4.0; Quellenangabe an
-**Bundesnetzagentur | SMARD.de** und **Energy-Charts.info (Fraunhofer ISE)**.
+Die Parquet-Dateien sind klein (zusammen etwa 25 MB) und liegen direkt im Repo.
+Man muss nichts extra herunterladen. Die Daten stehen unter der Lizenz CC BY 4.0.
+Bitte als Quelle nennen: **Bundesnetzagentur | SMARD.de** und
+**Energy-Charts.info (Fraunhofer ISE)**.
 
-## Die Pipeline
+## Das Skript
 
-`fetch_energy_charts.py` ist die komplette ETL-Strecke. Jeder Endpunkt bekommt
-eine kleine Funktion (`public_power`, `price`, `cbet`, `installed_power`), die das
-JSON abruft, die Struktur `unix_seconds + [{name, data}]` in einen sauberen
-DataFrame umbaut und die Zeitstempel nach `Europe/Berlin` umrechnet.
+`fetch_energy_charts.py` macht die ganze Arbeit. Für jeden Endpunkt gibt es eine
+kleine Funktion (`public_power`, `price`, `cbet`, `installed_power`). Jede
+Funktion holt die JSON-Daten, bringt sie in eine saubere Tabelle und stellt die
+Zeit auf `Europe/Berlin` um.
 
-Ein paar Dinge, die man wissen sollte:
+Ein paar Punkte dazu:
 
-- **Rate-Limit.** Die API erlaubt etwa 2 Anfragen pro Minute. Das Skript wartet
-  35 s zwischen den Aufrufen und, falls trotzdem ein HTTP 429 kommt, den im
-  `Retry-After`-Header genannten Zeitraum ab, bevor es erneut versucht.
-- **Chunking.** Die Zeitreihen-Endpunkte werden Kalenderjahr für Kalenderjahr
-  abgerufen und danach zusammengefügt. Ein kompletter Lauf 2019–2026 dauert wegen
-  der Wartezeiten rund 15 Minuten.
-- **Parquet statt CSV.** Spaltenorientiert, komprimiert, behält Datentypen und
-  Zeitzone – pandas und Power BI laden es ohne erneutes Parsen.
+- **Nur wenige Anfragen erlaubt.** Die API erlaubt etwa 2 Anfragen pro Minute.
+  Darum wartet das Skript 35 Sekunden zwischen den Anfragen. Wenn trotzdem der
+  Fehler HTTP 429 kommt, wartet es so lange, wie die API sagt, und versucht es
+  dann noch einmal.
+- **Ein Jahr pro Anfrage.** Das Skript holt die Daten Jahr für Jahr und setzt sie
+  danach zusammen. Ein ganzer Lauf von 2019 bis 2026 dauert etwa 15 Minuten, weil
+  das Skript oft wartet.
+- **Parquet statt CSV.** Das Format ist klein und schnell. Es behält die Typen und
+  die Zeitzone. pandas und Power BI können es direkt lesen.
 
-## Ausführen
+## Starten
 
 ```bash
 pip install -r requirements.txt
 python fetch_energy_charts.py
 ```
 
-Schneller Test ohne den kompletten Lauf:
+Kurzer Test ohne den ganzen Lauf:
 
 ```python
 from fetch_energy_charts import public_power
 public_power("de", "2025-01-01", "2025-01-31").head()
 ```
 
-## Aufbau des Reports
+## Wie der Report gebaut ist
 
-`energie-daten-DE.pbix` – zu öffnen in Power BI Desktop (kostenlos). Grober Aufbau:
+`energie-daten-DE.pbix` – öffnen mit Power BI Desktop (kostenlos). Der Aufbau:
 
-- **Power Query** lädt die Parquet-Dateien, wandelt die breiten Quellen-Spalten
-  per Unpivot in eine lange `source / value`-Tabelle um und gruppiert die Quellen
-  in Erneuerbar / Fossil / Kernenergie.
-- **Sternschema**: eine Datumstabelle, verknüpft mit Faktentabellen für Erzeugung,
-  Preis, Handel und Leistung.
-- **DAX**-Measures für Erneuerbaren-Anteil, Erzeugung im Jahresvergleich,
-  durchschnittlich erzielten Preis und rollierende Jahreswerte.
+- **Power Query** lädt die Parquet-Dateien. Aus den vielen Spalten macht es eine
+  lange Tabelle mit den Spalten `source` und `value`. Dann teilt es die Quellen in
+  drei Gruppen: Erneuerbar, Fossil und Atom.
+- **Sternschema:** eine Tabelle mit den Datumswerten ist mit Tabellen für Strom,
+  Preis, Handel und Leistung verbunden.
+- **DAX**-Formeln für den Anteil der Erneuerbaren, den Vergleich von Jahr zu Jahr,
+  den mittleren Preis und Summen über 12 Monate.
 
-Zum Aktualisieren zuerst den Python-Abruf erneut laufen lassen, dann die
-Power-Query-Quelle auf den lokalen `data/`-Ordner zeigen lassen.
+Zum Aktualisieren: erst das Python-Skript neu laufen lassen. Dann in Power Query
+den Ordner `data/` als Quelle wählen.
 
-## Was die Zahlen zeigen
+## Was die Zahlen sagen
 
-Alle Werte stammen aus diesem Datensatz. **2026 ist ein laufendes Jahr (Stand
-7. September).**
+Alle Zahlen kommen aus diesen Daten. **2026 geht nur bis zum 7. September.**
 
-**Der Preisschock 2022.** Durchschnittlicher Day-Ahead-Preis nach Jahr: 38 €
-(2019) → 31 € (2020) → 97 € (2021) → **235 € (2022)** → 95 € (2023) → 79 € (2024)
-→ 91 € (2025) → 104 € (2026 lfd.). Die Spitze 2022 liegt rund **8-mal** über dem
-Tief von 2020. Die europäische Merit-Order sorgt dafür, dass das teuerste noch
-benötigte Kraftwerk den Preis für alle setzt – als russisches Gas wegfiel, zogen
-die Rekord-Gaspreise den gesamten Strommarkt nach oben.
+**Der Preis-Schock 2022.** Mittlerer Preis pro Jahr: 38 € (2019), 31 € (2020),
+97 € (2021), **235 € (2022)**, 95 € (2023), 79 € (2024), 91 € (2025), 104 € (2026
+bis jetzt). Der Wert von 2022 ist rund **8-mal so hoch** wie 2020. Auf dem
+Strommarkt gibt es eine Regel: Das teuerste Kraftwerk, das gerade läuft, bestimmt
+den Preis für alle. Als das Gas aus Russland fehlte, wurde Gas sehr teuer. Darum
+stieg auch der Strompreis stark.
 
-![Dashboard gefiltert auf die Preiskrise 2021–2023](images/dashboard-2021-2023-crisis.png)
+![Dashboard nur für die Preis-Krise 2021–2023](images/dashboard-2021-2023-crisis.png)
 
-*Derselbe Report, gefiltert auf Sep 2021 – Dez 2023: Die Preislinie läuft von
-174 € über 235 € auf 98 €/MWh.*
+*Der gleiche Report, nur für Sep 2021 bis Dez 2023: Der Preis geht von 174 € auf
+235 € und dann auf 98 €/MWh.*
 
-**Kernenergie auf null.** Kernkraft-Erzeugung: 71 TWh (2019) → 33 TWh (2022) →
-7 TWh (2023) → **0 ab 2024**. Die letzten drei Reaktoren gingen im April 2023 vom
-Netz. Die Lücke schlossen Erneuerbare und ein geringerer Verbrauch, nicht neue
-fossile Kraftwerke.
+**Atomkraft auf null.** Strom aus Atomkraft: 71 TWh (2019), 33 TWh (2022), 7 TWh
+(2023), **0 ab 2024**. Die letzten drei Reaktoren wurden im April 2023
+abgeschaltet. Erneuerbare Energie und ein kleinerer Verbrauch haben die Lücke
+gefüllt, nicht neue Kohle- oder Gaskraftwerke.
 
-**Erneuerbare über 60 %.** Der Anteil der Erneuerbaren an der öffentlichen
-Nettostromerzeugung stieg von **~44 % (2019) auf ~61 % (2024–2026)**. Motor ist
-die Solarenergie: Erzeugung von 42 auf 70 TWh, während die installierte
-Solarleistung von **46 auf 118 GW** wuchs. Die Onshore-Windleistung stieg von 53
-auf 71 GW, Offshore von 7,7 auf 11 GW. Die fossile Erzeugung sank von ~208 auf
-~150 TWh.
+**Erneuerbare über 60 %.** Der Anteil der Erneuerbaren am öffentlichen Strom stieg
+von **rund 44 % (2019) auf rund 61 % (2024–2026)**. Der Grund ist vor allem Solar:
+Der Strom aus Solar stieg von 42 auf 70 TWh, und die installierte Solarleistung
+stieg von **46 auf 118 GW**. Die Windleistung an Land stieg von 53 auf 71 GW, auf
+See von 7,7 auf 11 GW. Der fossile Strom sank von rund 208 auf rund 150 TWh.
 
-![Dashboard mit nur konventioneller Erzeugung, 2019–2026](images/dashboard-fossil-decline.png)
+![Dashboard nur mit fossiler Erzeugung, 2019–2026](images/dashboard-fossil-decline.png)
 
-*Nur die konventionelle Erzeugung: Der fossile Block zeigt über den gesamten
-Zeitraum nach unten.*
+*Nur die fossile Erzeugung: Sie geht über den ganzen Zeitraum nach unten.*
 
-**Negative Preise sind der neue Normalfall.** Stunden mit negativem
-Großhandelspreis: **211 (2019) → 301 (2023) → 724 (2025) → 1.773 (2026 lfd.)**.
-Mittags drückt die Solarenergie das Angebot inzwischen regelmäßig über die
-Nachfrage, schneller als Kohle- und Gaskraftwerke herunterregeln können. Das ist
-der Haken an der Energiewende: mehr Erneuerbaren-Kapazität, weniger Erlös je MWh.
+**Negative Preise sind normal geworden.** Stunden mit einem Preis unter null:
+**211 (2019), 301 (2023), 724 (2025), 1.773 (2026 bis jetzt)**. Mittags gibt es
+oft mehr Solarstrom als Bedarf. Kohle- und Gaskraftwerke können nicht so schnell
+weniger produzieren. Das ist ein Problem bei der Energiewende: mehr Anlagen, aber
+weniger Geld pro MWh.
 
-**Der Winter-Herzschlag.** Erneuerbare *und* fossile Erzeugung erreichen beide im
-4./1. Quartal ihr Maximum und im 2./3. Quartal ihr Minimum. Der Winterverbrauch
-(Heizen, Beleuchtung) ist deutlich höher, deutscher Wind weht in Winterstürmen am
-stärksten, und konventionelle Kraftwerke fahren trotzdem parallel zum Wind hoch,
-um die verbleibende Last zu decken.
+**Mehr Strom im Winter.** Erneuerbare und fossile Erzeugung sind beide im Herbst
+und Winter am höchsten und im Frühling und Sommer am tiefsten. Im Winter braucht
+man mehr Strom (Heizung, Licht). Der Wind ist im Winter am stärksten. Aber der
+Wind allein reicht nicht, darum laufen auch Kohle- und Gaskraftwerke mehr.
 
-**Grenzüberschreitender Ausgleich.** Deutschland handelt ununterbrochen mit
-Dänemark, Frankreich, den Niederlanden, Norwegen und der Schweiz – exportiert
-überschüssigen Windstrom bei Sturm und holt bei Dunkelflaute französischen Atom-
-und skandinavischen Wasserkraftstrom herein.
+**Handel mit den Nachbarn.** Deutschland handelt die ganze Zeit mit Dänemark,
+Frankreich, den Niederlanden, Norwegen und der Schweiz. Wenn viel Wind da ist,
+verkauft Deutschland Strom ins Ausland. Wenn wenig Wind und Sonne da sind
+(Dunkelflaute), kauft Deutschland Strom aus dem Ausland, zum Beispiel Atomstrom
+aus Frankreich oder Wasserkraft aus Skandinavien.
 
-## Hinweise und Einschränkungen
+## Wichtige Hinweise
 
-- 2026 ist ein Rumpfjahr – die Jahreswerte nicht wie ein abgeschlossenes Jahr
-  lesen.
-- `/public_power` ist die *öffentliche* Nettostromerzeugung; die industrielle
-  Eigenversorgung fehlt, daher liegt sie leicht unter der gesamten nationalen
-  Erzeugung.
-- Die Preise gelten für die Gebotszone `DE-LU` (Deutschland–Luxemburg).
+- 2026 ist kein ganzes Jahr. Die Jahres-Summen für 2026 sind darum kleiner.
+- `/public_power` ist nur der *öffentliche* Strom. Strom, den die Industrie selbst
+  für sich macht, ist nicht dabei. Die echte Zahl ist also etwas höher.
+- Die Preise gelten für die Preiszone `DE-LU` (Deutschland–Luxemburg).
 
-## Stack
+## Technik
 
 Python (requests, pandas, pyarrow) · Apache Parquet · Power BI Desktop (Power
 Query, Sternschema, DAX)
