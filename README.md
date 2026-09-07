@@ -150,3 +150,16 @@ aus Frankreich oder Wasserkraft aus Skandinavien.
 
 Python (requests, pandas, pyarrow) · Apache Parquet · Power BI Desktop (Power
 Query, Sternschema, DAX)
+
+## Lizenzen
+
+Im Repo gelten zwei Lizenzen, für zwei verschiedene Teile:
+
+- **Code:** MIT (siehe [LICENSE](LICENSE)). Der Code und der Power-BI-Report
+  gehören mir und dürfen frei genutzt werden.
+- **Daten in `data/`:** CC BY 4.0 –
+  <https://creativecommons.org/licenses/by/4.0/deed.de>.
+  Quelle: Bundesnetzagentur | SMARD.de und Energy-Charts.info (Fraunhofer ISE).
+  Die Rohdaten wurden nach Jahren zusammengefasst und ins Parquet-Format
+  umgewandelt. Das Projekt wird von diesen Stellen nicht unterstützt und steht
+  in keiner Verbindung zu ihnen.
