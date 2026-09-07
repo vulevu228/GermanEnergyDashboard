@@ -1,142 +1,154 @@
-# German Energy Dashboard
+# Strommarkt-Dashboard Deutschland
 
-A small Python pipeline that pulls seven-plus years of Germany's electricity data
-from the **energy-charts.info** API (run by Fraunhofer ISE), saves it as Parquet,
-and feeds a Power BI report covering the generation mix, wholesale prices,
-cross-border trade and installed capacity.
+Eine kleine Python-Pipeline, die über sieben Jahre deutscher Stromdaten von der
+**energy-charts.info**-API (betrieben vom Fraunhofer ISE) abruft, als Parquet
+speichert und in einen Power-BI-Report einspeist – Strommix, Großhandelspreise,
+grenzüberschreitender Handel und installierte Leistung.
 
-Coverage: **January 2019 – 7 September 2026** (so 2026 is a partial year). Generation
-is 15-minute resolution, prices are hourly.
+Zeitraum: **Januar 2019 – 7. September 2026** (2026 ist also ein Rumpfjahr). Die
+Erzeugung liegt in 15-Minuten-Auflösung vor, die Preise stündlich.
 
-## The dashboard
+## Das Dashboard
 
-![German energy dashboard, 2019–2026 overview](images/dashboard-overview.png)
+![Strom-Dashboard Deutschland, Überblick 2019–2026](images/dashboard-overview.png)
 
-Total annual generation, the average wholesale price curve, the
-renewables-vs-conventional energy mix, and cross-border trade with neighbours.
-The date slider at the top drives every visual, so you can zoom the whole page
-into a single event.
+Jährliche Gesamterzeugung, die Kurve des durchschnittlichen Großhandelspreises,
+der Strommix aus Erneuerbaren und konventioneller Erzeugung sowie der Stromhandel
+mit den Nachbarländern. Der Datums-Slider oben steuert alle Visuals gleichzeitig –
+so lässt sich die ganze Seite auf ein einzelnes Ereignis eingrenzen.
 
-## Why
+## Worum es geht
 
-Germany is running the biggest energy transition ("Energiewende") of any large
-economy, and all of it shows up in public data: the 2022 gas-price shock, the last
-nuclear plants switching off, solar capacity more than doubling, and negative
-electricity prices going from rare to routine. This project turns the raw API into
-something you can actually read.
+Deutschland stemmt die größte Energiewende aller großen Industrienationen, und
+alles davon steckt in öffentlichen Daten: der Gaspreisschock 2022, die Abschaltung
+der letzten Kernkraftwerke, die Verdopplung der Solarkapazität und negative
+Strompreise, die von der Ausnahme zur Regel werden. Dieses Projekt macht aus der
+rohen API etwas Lesbares.
 
-## The data
+## Die Daten
 
-Everything comes from `https://api.energy-charts.info` — **no API key, no signup.**
-Four endpoints, one Parquet file each:
+Alles kommt von `https://api.energy-charts.info` – **kein API-Key, keine Anmeldung.**
+Vier Endpunkte, je eine Parquet-Datei:
 
-| File | Endpoint | What's in it |
+| Datei | Endpunkt | Inhalt |
 | --- | --- | --- |
-| `data/de_public_power.parquet` | `/public_power` | Net generation by source (wind, solar, coal, gas, nuclear, …) plus Load and the renewable-share series, every 15 min |
-| `data/de_price.parquet` | `/price` | Day-ahead wholesale price, EUR/MWh, bidding zone `DE-LU`, hourly |
-| `data/de_cbet.parquet` | `/cbet` | Cross-border scheduled trade in GW, one column per neighbour (+ = import to Germany, − = export) |
-| `data/de_installed_power_monthly.parquet`, `..._yearly.parquet` | `/installed_power` | Installed capacity per source, GW, month-end and year-end |
+| `data/de_public_power.parquet` | `/public_power` | Nettostromerzeugung nach Quelle (Wind, Solar, Kohle, Gas, Kernenergie, …) plus Last und die Erneuerbaren-Anteil-Reihen, im 15-Minuten-Takt |
+| `data/de_price.parquet` | `/price` | Day-Ahead-Großhandelspreis, EUR/MWh, Gebotszone `DE-LU`, stündlich |
+| `data/de_cbet.parquet` | `/cbet` | Grenzüberschreitender geplanter Handel in GW, eine Spalte je Nachbarland (+ = Import nach Deutschland, − = Export) |
+| `data/de_installed_power_monthly.parquet`, `..._yearly.parquet` | `/installed_power` | Installierte Leistung nach Quelle, GW, zum Monats- bzw. Jahresende |
 
-The Parquet files are small (~25 MB total) so they're committed straight to the
-repo — no separate download needed. Data is CC BY 4.0; credit goes to
-**Bundesnetzagentur | SMARD.de** and **Energy-Charts.info (Fraunhofer ISE)**.
+Die Parquet-Dateien sind klein (~25 MB insgesamt) und liegen direkt im Repo –
+kein separater Download nötig. Die Daten stehen unter CC BY 4.0; Quellenangabe an
+**Bundesnetzagentur | SMARD.de** und **Energy-Charts.info (Fraunhofer ISE)**.
 
-## The pipeline
+## Die Pipeline
 
-`fetch_energy_charts.py` is the whole ETL. Each endpoint gets a small function
-(`public_power`, `price`, `cbet`, `installed_power`) that fetches the JSON, turns
-the `unix_seconds + [{name, data}]` shape into a tidy DataFrame, and converts
-timestamps to `Europe/Berlin`.
+`fetch_energy_charts.py` ist die komplette ETL-Strecke. Jeder Endpunkt bekommt
+eine kleine Funktion (`public_power`, `price`, `cbet`, `installed_power`), die das
+JSON abruft, die Struktur `unix_seconds + [{name, data}]` in einen sauberen
+DataFrame umbaut und die Zeitstempel nach `Europe/Berlin` umrechnet.
 
-A few things worth knowing:
+Ein paar Dinge, die man wissen sollte:
 
-- **Rate limit.** The API allows about 2 requests per minute. The script sleeps
-  35 s between calls and, if it still gets an HTTP 429, waits out the `Retry-After`
-  header before trying again.
-- **Chunking.** The time-series endpoints are pulled one calendar year at a time,
-  then glued together. A full 2019–2026 run takes roughly 15 minutes because of
-  the sleeps.
-- **Parquet, not CSV.** Columnar, compressed, keeps the dtypes and the timezone,
-  and both pandas and Power BI load it with no re-parsing.
+- **Rate-Limit.** Die API erlaubt etwa 2 Anfragen pro Minute. Das Skript wartet
+  35 s zwischen den Aufrufen und, falls trotzdem ein HTTP 429 kommt, den im
+  `Retry-After`-Header genannten Zeitraum ab, bevor es erneut versucht.
+- **Chunking.** Die Zeitreihen-Endpunkte werden Kalenderjahr für Kalenderjahr
+  abgerufen und danach zusammengefügt. Ein kompletter Lauf 2019–2026 dauert wegen
+  der Wartezeiten rund 15 Minuten.
+- **Parquet statt CSV.** Spaltenorientiert, komprimiert, behält Datentypen und
+  Zeitzone – pandas und Power BI laden es ohne erneutes Parsen.
 
-## Running it
+## Ausführen
 
 ```bash
 pip install -r requirements.txt
 python fetch_energy_charts.py
 ```
 
-Quick check without the full run:
+Schneller Test ohne den kompletten Lauf:
 
 ```python
 from fetch_energy_charts import public_power
 public_power("de", "2025-01-01", "2025-01-31").head()
 ```
 
-## How the report is built
+## Aufbau des Reports
 
-`energie-daten-DE.pbix` — open it in Power BI Desktop (free). Rough build:
+`energie-daten-DE.pbix` – zu öffnen in Power BI Desktop (kostenlos). Grober Aufbau:
 
-- **Power Query** loads the Parquet files, unpivots the wide source columns into a
-  long `source / value` table, and buckets sources into Renewable / Fossil / Nuclear.
-- **Star schema**: a date table joined to fact tables for generation, price, trade
-  and capacity.
-- **DAX** measures for renewable share, year-over-year generation, average price
-  captured, and rolling annual totals.
+- **Power Query** lädt die Parquet-Dateien, wandelt die breiten Quellen-Spalten
+  per Unpivot in eine lange `source / value`-Tabelle um und gruppiert die Quellen
+  in Erneuerbar / Fossil / Kernenergie.
+- **Sternschema**: eine Datumstabelle, verknüpft mit Faktentabellen für Erzeugung,
+  Preis, Handel und Leistung.
+- **DAX**-Measures für Erneuerbaren-Anteil, Erzeugung im Jahresvergleich,
+  durchschnittlich erzielten Preis und rollierende Jahreswerte.
 
-To refresh it, re-run the Python pull first, then point the Power Query source at
-your local `data/` folder.
+Zum Aktualisieren zuerst den Python-Abruf erneut laufen lassen, dann die
+Power-Query-Quelle auf den lokalen `data/`-Ordner zeigen lassen.
 
-## What the numbers say
+## Was die Zahlen zeigen
 
-All figures are from this dataset. **2026 is year-to-date (through 7 Sep).**
+Alle Werte stammen aus diesem Datensatz. **2026 ist ein laufendes Jahr (Stand
+7. September).**
 
-**The 2022 price shock.** Average day-ahead price by year: €38 (2019) → €31 (2020)
-→ €97 (2021) → **€235 (2022)** → €95 (2023) → €79 (2024) → €91 (2025) → €104 (2026
-YTD). The 2022 peak is about **8x** the 2020 low. Europe's "merit order" market
-lets the most expensive plant needed set the price for everyone, so when Russian
-gas was cut off, record gas prices dragged the whole power market up with them.
+**Der Preisschock 2022.** Durchschnittlicher Day-Ahead-Preis nach Jahr: 38 €
+(2019) → 31 € (2020) → 97 € (2021) → **235 € (2022)** → 95 € (2023) → 79 € (2024)
+→ 91 € (2025) → 104 € (2026 lfd.). Die Spitze 2022 liegt rund **8-mal** über dem
+Tief von 2020. Die europäische Merit-Order sorgt dafür, dass das teuerste noch
+benötigte Kraftwerk den Preis für alle setzt – als russisches Gas wegfiel, zogen
+die Rekord-Gaspreise den gesamten Strommarkt nach oben.
 
-![Dashboard sliced to the 2021–2023 price crisis](images/dashboard-2021-2023-crisis.png)
+![Dashboard gefiltert auf die Preiskrise 2021–2023](images/dashboard-2021-2023-crisis.png)
 
-*Same report, filtered to Sep 2021 – Dec 2023: the price line runs €174 → €235 → €98/MWh.*
+*Derselbe Report, gefiltert auf Sep 2021 – Dez 2023: Die Preislinie läuft von
+174 € über 235 € auf 98 €/MWh.*
 
-**Nuclear went to zero.** Nuclear output: 71 TWh (2019) → 33 TWh (2022) → 7 TWh
-(2023) → **0 from 2024 on**. The last three reactors shut in April 2023. Renewables
-and lower demand covered the gap, not new fossil plants.
+**Kernenergie auf null.** Kernkraft-Erzeugung: 71 TWh (2019) → 33 TWh (2022) →
+7 TWh (2023) → **0 ab 2024**. Die letzten drei Reaktoren gingen im April 2023 vom
+Netz. Die Lücke schlossen Erneuerbare und ein geringerer Verbrauch, nicht neue
+fossile Kraftwerke.
 
-**Renewables passed 60%.** Renewable share of public generation climbed from **~44%
-(2019) to ~61% (2024–2026)**. The engine is solar: generation went 42 → 70 TWh
-while installed solar capacity went **46 → 118 GW**. Onshore wind capacity rose
-53 → 71 GW, offshore 7.7 → 11 GW. Fossil generation fell ~208 → ~150 TWh.
+**Erneuerbare über 60 %.** Der Anteil der Erneuerbaren an der öffentlichen
+Nettostromerzeugung stieg von **~44 % (2019) auf ~61 % (2024–2026)**. Motor ist
+die Solarenergie: Erzeugung von 42 auf 70 TWh, während die installierte
+Solarleistung von **46 auf 118 GW** wuchs. Die Onshore-Windleistung stieg von 53
+auf 71 GW, Offshore von 7,7 auf 11 GW. Die fossile Erzeugung sank von ~208 auf
+~150 TWh.
 
-![Dashboard with only conventional generation selected, 2019–2026](images/dashboard-fossil-decline.png)
+![Dashboard mit nur konventioneller Erzeugung, 2019–2026](images/dashboard-fossil-decline.png)
 
-*Conventional generation on its own: the fossil block trends down across the whole window.*
+*Nur die konventionelle Erzeugung: Der fossile Block zeigt über den gesamten
+Zeitraum nach unten.*
 
-**Negative prices are the new normal.** Hours with a negative wholesale price:
-**211 (2019) → 301 (2023) → 724 (2025) → 1,773 (2026 YTD)**. Midday solar now
-regularly pushes supply past demand faster than coal and gas plants can throttle
-down. This is the catch in the transition: more renewable capacity, less money
-earned per MWh.
+**Negative Preise sind der neue Normalfall.** Stunden mit negativem
+Großhandelspreis: **211 (2019) → 301 (2023) → 724 (2025) → 1.773 (2026 lfd.)**.
+Mittags drückt die Solarenergie das Angebot inzwischen regelmäßig über die
+Nachfrage, schneller als Kohle- und Gaskraftwerke herunterregeln können. Das ist
+der Haken an der Energiewende: mehr Erneuerbaren-Kapazität, weniger Erlös je MWh.
 
-**The winter heartbeat.** Renewable *and* fossil output both peak in Q4/Q1 and dip
-in Q2/Q3. Winter demand (heating, lighting) is much higher, German wind blows
-hardest in winter storms, and conventional plants still ramp up alongside the wind
-to cover whatever load is left.
+**Der Winter-Herzschlag.** Erneuerbare *und* fossile Erzeugung erreichen beide im
+4./1. Quartal ihr Maximum und im 2./3. Quartal ihr Minimum. Der Winterverbrauch
+(Heizen, Beleuchtung) ist deutlich höher, deutscher Wind weht in Winterstürmen am
+stärksten, und konventionelle Kraftwerke fahren trotzdem parallel zum Wind hoch,
+um die verbleibende Last zu decken.
 
-**Cross-border balancing.** Germany trades non-stop with Denmark, France, the
-Netherlands, Norway and Switzerland — dumping surplus wind when it's stormy,
-pulling in French nuclear and Nordic hydro during low-wind "Dunkelflaute" spells.
+**Grenzüberschreitender Ausgleich.** Deutschland handelt ununterbrochen mit
+Dänemark, Frankreich, den Niederlanden, Norwegen und der Schweiz – exportiert
+überschüssigen Windstrom bei Sturm und holt bei Dunkelflaute französischen Atom-
+und skandinavischen Wasserkraftstrom herein.
 
-## Notes and caveats
+## Hinweise und Einschränkungen
 
-- 2026 is a partial year — don't read its totals as if it were finished.
-- `/public_power` is *public* net generation; it leaves out industrial self-supply,
-  so it slightly understates total national generation.
-- Prices are for the `DE-LU` (Germany–Luxembourg) bidding zone.
+- 2026 ist ein Rumpfjahr – die Jahreswerte nicht wie ein abgeschlossenes Jahr
+  lesen.
+- `/public_power` ist die *öffentliche* Nettostromerzeugung; die industrielle
+  Eigenversorgung fehlt, daher liegt sie leicht unter der gesamten nationalen
+  Erzeugung.
+- Die Preise gelten für die Gebotszone `DE-LU` (Deutschland–Luxemburg).
 
 ## Stack
 
 Python (requests, pandas, pyarrow) · Apache Parquet · Power BI Desktop (Power
-Query, star schema, DAX)
+Query, Sternschema, DAX)
