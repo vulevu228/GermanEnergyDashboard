@@ -8,6 +8,15 @@ cross-border trade and installed capacity.
 Coverage: **January 2019 – 7 September 2026** (so 2026 is a partial year). Generation
 is 15-minute resolution, prices are hourly.
 
+## The dashboard
+
+![German energy dashboard, 2019–2026 overview](images/dashboard-overview.png)
+
+Total annual generation, the average wholesale price curve, the
+renewables-vs-conventional energy mix, and cross-border trade with neighbours.
+The date slider at the top drives every visual, so you can zoom the whole page
+into a single event.
+
 ## Why
 
 Germany is running the biggest energy transition ("Energiewende") of any large
@@ -64,7 +73,7 @@ from fetch_energy_charts import public_power
 public_power("de", "2025-01-01", "2025-01-31").head()
 ```
 
-## The Power BI report
+## How the report is built
 
 `energie-daten-DE.pbix` — open it in Power BI Desktop (free). Rough build:
 
@@ -88,6 +97,10 @@ YTD). The 2022 peak is about **8x** the 2020 low. Europe's "merit order" market
 lets the most expensive plant needed set the price for everyone, so when Russian
 gas was cut off, record gas prices dragged the whole power market up with them.
 
+![Dashboard sliced to the 2021–2023 price crisis](images/dashboard-2021-2023-crisis.png)
+
+*Same report, filtered to Sep 2021 – Dec 2023: the price line runs €174 → €235 → €98/MWh.*
+
 **Nuclear went to zero.** Nuclear output: 71 TWh (2019) → 33 TWh (2022) → 7 TWh
 (2023) → **0 from 2024 on**. The last three reactors shut in April 2023. Renewables
 and lower demand covered the gap, not new fossil plants.
@@ -96,6 +109,10 @@ and lower demand covered the gap, not new fossil plants.
 (2019) to ~61% (2024–2026)**. The engine is solar: generation went 42 → 70 TWh
 while installed solar capacity went **46 → 118 GW**. Onshore wind capacity rose
 53 → 71 GW, offshore 7.7 → 11 GW. Fossil generation fell ~208 → ~150 TWh.
+
+![Dashboard with only conventional generation selected, 2019–2026](images/dashboard-fossil-decline.png)
+
+*Conventional generation on its own: the fossil block trends down across the whole window.*
 
 **Negative prices are the new normal.** Hours with a negative wholesale price:
 **211 (2019) → 301 (2023) → 724 (2025) → 1,773 (2026 YTD)**. Midday solar now
