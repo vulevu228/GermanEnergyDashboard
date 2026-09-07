@@ -1,0 +1,18 @@
+# --- secrets ---
+.env
+
+# --- python junk ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# --- editor / OS junk ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Power BI temp / recovery files (keep the .pbix itself) ---
+*.pbix.tmp
+~$*
