@@ -1,0 +1,126 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 29,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Generation",
+          "nodeLineageTag": "01f46765-e443-5d38-9e28-29f03f22e34a",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 280,
+            "y": 60
+          },
+          "nodeIndex": "Power",
+          "nodeLineageTag": "719bb057-74db-5d58-ab33-980e6756c710",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 560,
+            "y": 0
+          },
+          "nodeIndex": "Hourly Profile",
+          "nodeLineageTag": "6f525dd0-8d0f-5671-abcf-f9ab7701beaf",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 840,
+            "y": 60
+          },
+          "nodeIndex": "Trade",
+          "nodeLineageTag": "66ff80f3-9961-5568-97ca-9f4580274116",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1120,
+            "y": 0
+          },
+          "nodeIndex": "Capacity",
+          "nodeLineageTag": "a0984f98-780b-5001-86aa-bb585bdb48be",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1400,
+            "y": 60
+          },
+          "nodeIndex": "Capacity Targets",
+          "nodeLineageTag": "c22d9d70-6a8f-510e-a903-d6a23dd8b789",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1680,
+            "y": 0
+          },
+          "nodeIndex": "Calendar",
+          "nodeLineageTag": "72df7e45-1611-5304-9d2f-29be357ea4e9",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1960,
+            "y": 60
+          },
+          "nodeIndex": "_Measures",
+          "nodeLineageTag": "fda32a8e-c155-5d7d-8fd0-ca16d3134604",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

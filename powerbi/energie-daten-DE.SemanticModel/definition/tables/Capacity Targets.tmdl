@@ -1,0 +1,64 @@
+table 'Capacity Targets'
+	lineageTag: c22d9d70-6a8f-510e-a903-d6a23dd8b789
+
+	column 'Year Start'
+		dataType: dateTime
+		isHidden
+		formatString: yyyy
+		lineageTag: 3d768561-a52b-5f9a-a0a8-a440d1960447
+		summarizeBy: none
+		sourceColumn: Year Start
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Technology
+		dataType: string
+		lineageTag: 57a02e60-27aa-5a69-bb66-bbe8e1315d14
+		summarizeBy: none
+		sourceColumn: Technology
+
+		annotation SummarizationSetBy = Automatic
+
+	column GW
+		dataType: double
+		formatString: #,##0.0
+		lineageTag: 8199e3e2-5b69-5cbb-9c44-5a6597c53b29
+		summarizeBy: sum
+		sourceColumn: GW
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: 93540b52-6ea9-5fb4-a9be-c753a84bc596
+		summarizeBy: none
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Target'
+		dataType: int64
+		formatString: 0
+		lineageTag: 339764de-fa26-5b3c-a536-7090ec955119
+		summarizeBy: none
+		sourceColumn: Is Target
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Capacity Targets' = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\Users\emira\Projects\GitHub-Projects\GermanEnergyDashboard\data\dashboard\capacity_yearly.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null]),
+				    #"Renamed Columns" = Table.RenameColumns(Source, {{"year_start", "Year Start"}, {"technology", "Technology"}, {"gw", "GW"}, {"year", "Year"}, {"is_target", "Is Target"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns", {{"Year Start", type date}, {"Technology", type text}, {"GW", type number}, {"Year", Int64.Type}, {"Is Target", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

@@ -16,3 +16,8 @@ Thumbs.db
 # --- Power BI temp / recovery files (keep the .pbix itself) ---
 *.pbix.tmp
 ~$*
+
+# --- Power BI project (.pbip) local files: data cache + per-user settings ---
+**/.pbi/cache.abf
+**/.pbi/localSettings.json
+**/.pbi/editorSettings.json

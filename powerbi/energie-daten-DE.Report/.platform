@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "energie-daten-DE"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "cfa4e2fa-fc40-456c-ab00-777638e6aa5f"
+  }
+}

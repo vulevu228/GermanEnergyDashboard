@@ -1,0 +1,174 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "Fluent2-CY26SU08",
+      "reportVersionAtImport": {
+        "visual": "2.12.0",
+        "report": "3.4.0",
+        "page": "2.3.1"
+      },
+      "type": "SharedResources"
+    }
+  },
+  "objects": {
+    "section": [
+      {
+        "properties": {
+          "verticalAlignment": {
+            "expr": {
+              "Literal": {
+                "Value": "'Top'"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspacePane": [
+      {
+        "properties": {
+          "expanded": {
+            "expr": {
+              "Literal": {
+                "Value": "false"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "resourcePackages": [
+    {
+      "name": "SharedResources",
+      "type": "SharedResources",
+      "items": [
+        {
+          "name": "Fluent2-CY26SU08",
+          "path": "BaseThemes/Fluent2-CY26SU08.json",
+          "type": "BaseTheme"
+        }
+      ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "bg_grid4410.jpg",
+          "path": "bg_grid4410.jpg",
+          "type": "Image"
+        },
+        {
+          "name": "hero_overview7301.png",
+          "path": "hero_overview7301.png",
+          "type": "Image"
+        },
+        {
+          "name": "hero_mix7302.png",
+          "path": "hero_mix7302.png",
+          "type": "Image"
+        },
+        {
+          "name": "hero_prices7303.png",
+          "path": "hero_prices7303.png",
+          "type": "Image"
+        },
+        {
+          "name": "hero_grid7304.png",
+          "path": "hero_grid7304.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_sun5500.png",
+          "path": "icon_sun5500.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_wind5501.png",
+          "path": "icon_wind5501.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_bolt5502.png",
+          "path": "icon_bolt5502.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_euro5503.png",
+          "path": "icon_euro5503.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_atom5504.png",
+          "path": "icon_atom5504.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_factory5505.png",
+          "path": "icon_factory5505.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_trade5506.png",
+          "path": "icon_trade5506.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_battery5507.png",
+          "path": "icon_battery5507.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_leaf5508.png",
+          "path": "icon_leaf5508.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_negative5509.png",
+          "path": "icon_negative5509.png",
+          "type": "Image"
+        },
+        {
+          "name": "strip_0_ffc94a.png",
+          "path": "strip_0_ffc94a.png",
+          "type": "Image"
+        },
+        {
+          "name": "strip_1_5cc8ff.png",
+          "path": "strip_1_5cc8ff.png",
+          "type": "Image"
+        },
+        {
+          "name": "strip_2_5fd38a.png",
+          "path": "strip_2_5fd38a.png",
+          "type": "Image"
+        },
+        {
+          "name": "strip_3_ff7a8a.png",
+          "path": "strip_3_ff7a8a.png",
+          "type": "Image"
+        },
+        {
+          "name": "strip_4_c496f0.png",
+          "path": "strip_4_c496f0.png",
+          "type": "Image"
+        },
+        {
+          "name": "strip_5_c9a27e.png",
+          "path": "strip_5_c9a27e.png",
+          "type": "Image"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "useStylableVisualContainerHeader": true,
+    "exportDataMode": "AllowSummarized",
+    "defaultDrillFilterOtherVisuals": true,
+    "allowChangeFilterTypes": true,
+    "useEnhancedTooltips": true,
+    "useDefaultAggregateDisplayName": true
+  }
+}

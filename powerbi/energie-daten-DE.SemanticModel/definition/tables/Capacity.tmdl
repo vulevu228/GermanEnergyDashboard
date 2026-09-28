@@ -1,0 +1,45 @@
+table Capacity
+	lineageTag: a0984f98-780b-5001-86aa-bb585bdb48be
+
+	column Month
+		dataType: dateTime
+		formatString: mmm yyyy
+		lineageTag: 78c26aaa-9ad3-5f66-ac59-4d6df0b9d453
+		summarizeBy: none
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Technology
+		dataType: string
+		lineageTag: 899799ad-4ec6-5bf7-9959-f64a49a10b0f
+		summarizeBy: none
+		sourceColumn: Technology
+
+		annotation SummarizationSetBy = Automatic
+
+	column GW
+		dataType: double
+		formatString: #,##0.0
+		lineageTag: 62001383-3e2c-5307-b9b0-e98a069c6327
+		summarizeBy: sum
+		sourceColumn: GW
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Capacity = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\Users\emira\Projects\GitHub-Projects\GermanEnergyDashboard\data\dashboard\capacity_monthly.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null]),
+				    #"Renamed Columns" = Table.RenameColumns(Source, {{"month", "Month"}, {"technology", "Technology"}, {"gw", "GW"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns", {{"Month", type date}, {"Technology", type text}, {"GW", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

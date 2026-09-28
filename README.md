@@ -5,18 +5,41 @@ Ein kleines Python-Skript holt Stromdaten aus Deutschland von der API von
 Parquet-Dateien. Ein Power-BI-Report zeigt sie dann als Grafiken: Strommix,
 Preise, Handel mit den Nachbarländern und installierte Leistung.
 
-Zeitraum: **Januar 2019 bis 7. September 2026.** 2026 ist noch nicht zu Ende,
-also ist es kein ganzes Jahr. Die Stromdaten gibt es alle 15 Minuten, die Preise
-jede Stunde.
+Zeitraum: **1. Januar 2019 bis 6. September 2026** (der letzte ganze Tag in den
+Daten). 2026 ist noch nicht zu Ende, also ist es kein ganzes Jahr. Die Stromdaten
+gibt es alle 15 Minuten. Die Preise gibt es bis September 2025 jede Stunde, seit
+Oktober 2025 jede Viertelstunde.
 
 ## Das Dashboard
 
-![Strom-Dashboard Deutschland, Überblick 2019–2026](images/dashboard-overview.png)
+Der Report hat vier Seiten. Oben wählt man mit Knöpfen die Seite und mit dem
+Datums-Regler den Zeitraum. Jede Seite hat oben sechs Kennzahlen. Unter jeder
+Kennzahl steht ein Vergleich: die ersten 12 Monate des Zeitraums gegen die
+letzten 12 Monate. So sieht man sofort, was sich verändert hat.
 
-Die Seite zeigt: den Strom pro Jahr, den mittleren Preis über die Zeit, den
-Strommix aus erneuerbarer und fossiler Erzeugung und den Handel mit den
-Nachbarländern. Mit dem Datums-Regler oben wählt man einen Zeitraum. Dann ändern
-sich alle Grafiken zusammen.
+**1. Überblick:** Anteil der Erneuerbaren, Preis, Atomstrom, Stunden mit
+negativem Preis, Solar-Leistung und Stromhandel. Dazu die Erzeugung pro Monat
+(erneuerbar, Atom, fossil) und der mittlere Preis pro Monat.
+
+![Seite 1: Überblick](images/dashboard-1-overview.png)
+
+**2. Strommix:** Erzeugung pro Quelle und Jahr (Solar, Wind an Land, Wind auf
+See, Biomasse und Wasser, Atom, Kohle, Gas, Rest), der Anteil jeder Quelle,
+Sonne im Sommer gegen Wind im Winter und ein mittlerer Tag im Stromnetz.
+
+![Seite 2: Strommix](images/dashboard-2-generation-mix.png)
+
+**3. Preise:** der Preis pro Monat mit der Krise 2022, der Preis für jede Stunde
+des Tages pro Jahr (mittags wird Strom billig, abends teuer) und die Stunden mit
+negativem Preis pro Jahr.
+
+![Seite 3: Preise](images/dashboard-3-prices.png)
+
+**4. Leistung & Handel:** wie schnell Solar, Wind und Batterien wachsen, wie weit
+es noch bis zu den Zielen für 2030 ist, Import und Export pro Monat und der
+Handel mit jedem Nachbarland.
+
+![Seite 4: Leistung und Handel](images/dashboard-4-capacity-trade.png)
 
 ## Warum dieses Projekt
 
@@ -66,8 +89,21 @@ Ein paar Punkte dazu:
 
 ```bash
 pip install -r requirements.txt
-python fetch_energy_charts.py
+python fetch_energy_charts.py        # Rohdaten holen (etwa 15 Minuten)
+python prepare_dashboard_data.py     # kleine Tabellen für Power BI bauen (wenige Sekunden)
 ```
+
+`prepare_dashboard_data.py` rechnet die 15-Minuten-Werte (MW) in Energie pro Tag
+(GWh) um und schreibt sechs kleine Parquet-Dateien nach `data/dashboard/`:
+Erzeugung pro Tag und Quelle, Preis und Last pro Tag, ein Tagesprofil pro Monat
+und Stunde, Handel pro Tag und Land sowie die installierte Leistung. Zwei Punkte
+sind dabei wichtig:
+
+- **Stunden richtig zählen.** Seit Oktober 2025 gibt es vier Preise pro Stunde.
+  Jede Zeile zählt darum mit ihrer Dauer (0,25 h oder 1 h). Der mittlere Preis ist
+  nach der Zeit gewichtet.
+- **Nur ganze Tage.** Der letzte Tag der Rohdaten ist oft nur halb da. Das Skript
+  lässt ihn weg, damit die Summen stimmen.
 
 Kurzer Test ohne den ganzen Lauf:
 
@@ -78,34 +114,41 @@ public_power("de", "2025-01-01", "2025-01-31").head()
 
 ## Wie der Report gebaut ist
 
-`energie-daten-DE.pbix` – öffnen mit Power BI Desktop (kostenlos). Der Aufbau:
+Der Report liegt in `powerbi/` als **Power-BI-Projekt** (`.pbip`). Das ist eine
+Sammlung von Textdateien, die man mit Git gut vergleichen kann. Öffnen mit Power BI
+Desktop (kostenlos): `powerbi/energie-daten-DE.pbip`.
 
-- **Power Query** lädt die Parquet-Dateien. Aus den vielen Spalten macht es eine
-  lange Tabelle mit den Spalten `source` und `value`. Dann teilt es die Quellen in
-  drei Gruppen: Erneuerbar, Fossil und Atom.
-- **Sternschema:** eine Tabelle mit den Datumswerten ist mit Tabellen für Strom,
-  Preis, Handel und Leistung verbunden.
-- **DAX**-Formeln für den Anteil der Erneuerbaren, den Vergleich von Jahr zu Jahr,
-  den mittleren Preis und Summen über 12 Monate.
+- `energie-daten-DE.SemanticModel/` – das Datenmodell: sechs Tabellen aus
+  `data/dashboard/`, eine Kalender-Tabelle und 67 DAX-Measures.
+- `energie-daten-DE.Report/` – die vier Seiten. Die Bilder (Banner, Hintergrund,
+  Symbole) sind selbst gezeichnet und liegen in `StaticResources/`.
+- `energie-daten-DE_v1_original.pbix` – meine erste Version des Reports (eine
+  Seite), zum Vergleich.
 
-Zum Aktualisieren: erst das Python-Skript neu laufen lassen. Dann in Power Query
-den Ordner `data/` als Quelle wählen.
+Der Aufbau des Modells:
+
+- **Sternschema:** die Kalender-Tabelle ist mit Erzeugung, Preis, Handel,
+  Tagesprofil und Leistung verbunden. Der Datums-Regler filtert darum alles.
+- **DAX** für den Anteil der Erneuerbaren, den zeitgewichteten Preis, die ersten
+  gegen die letzten 12 Monate, den Abstand zu den Zielen für 2030 und die Farbe der
+  Balken beim Handel.
+
+**Zum Aktualisieren:** erst die zwei Python-Skripte laufen lassen, dann in Power
+BI auf *Aktualisieren* klicken. Die Pfade zu den Parquet-Dateien sind feste Pfade
+auf meinem Rechner. Wer das Repo woanders hat, ändert in Power Query den Pfad zu
+`data/dashboard/`.
 
 ## Was die Zahlen sagen
 
-Alle Zahlen kommen aus diesen Daten. **2026 geht nur bis zum 7. September.**
+Alle Zahlen kommen aus diesen Daten. **2026 geht nur bis zum 6. September.**
 
 **Der Preis-Schock 2022.** Mittlerer Preis pro Jahr: 38 € (2019), 31 € (2020),
 97 € (2021), **235 € (2022)**, 95 € (2023), 79 € (2024), 91 € (2025), 104 € (2026
 bis jetzt). Der Wert von 2022 ist rund **8-mal so hoch** wie 2020. Auf dem
 Strommarkt gibt es eine Regel: Das teuerste Kraftwerk, das gerade läuft, bestimmt
 den Preis für alle. Als das Gas aus Russland fehlte, wurde Gas sehr teuer. Darum
-stieg auch der Strompreis stark.
-
-![Dashboard nur für die Preis-Krise 2021–2023](images/dashboard-2021-2023-crisis.png)
-
-*Der gleiche Report, nur für Sep 2021 bis Dez 2023: Der Preis geht von 174 € auf
-235 € und dann auf 98 €/MWh.*
+stieg auch der Strompreis stark. Der teuerste Monat war der **August 2022** mit
+rund 465 €/MWh im Mittel. Vor der Krise (2019–2020) waren es 34 €/MWh.
 
 **Atomkraft auf null.** Strom aus Atomkraft: 71 TWh (2019), 33 TWh (2022), 7 TWh
 (2023), **0 ab 2024**. Die letzten drei Reaktoren wurden im April 2023
@@ -117,21 +160,27 @@ von **rund 44 % (2019) auf rund 61 % (2024–2026)**. Der Grund ist vor allem So
 Der Strom aus Solar stieg von 42 auf 70 TWh, und die installierte Solarleistung
 stieg von **46 auf 118 GW**. Die Windleistung an Land stieg von 53 auf 71 GW, auf
 See von 7,7 auf 11 GW. Der fossile Strom sank von rund 208 auf rund 150 TWh.
-
-![Dashboard nur mit fossiler Erzeugung, 2019–2026](images/dashboard-fossil-decline.png)
-
-*Nur die fossile Erzeugung: Sie geht über den ganzen Zeitraum nach unten.*
+Batteriespeicher wuchsen von 0,7 GW (Januar 2019) auf 21 GW. Bis zu den Zielen für 2030 ist es aber
+noch weit: Solar hat 118 von 215 GW, Wind auf See 11 von 30 GW.
 
 **Negative Preise sind normal geworden.** Stunden mit einem Preis unter null:
-**211 (2019), 301 (2023), 724 (2025), 1.773 (2026 bis jetzt)**. Mittags gibt es
-oft mehr Solarstrom als Bedarf. Kohle- und Gaskraftwerke können nicht so schnell
-weniger produzieren. Das ist ein Problem bei der Energiewende: mehr Anlagen, aber
-weniger Geld pro MWh.
+**211 (2019), 301 (2023), 457 (2024), 575 (2025), 443 (2026 bis jetzt)**. Seit
+Oktober 2025 gibt es Preise pro Viertelstunde; eine Viertelstunde zählt darum als
+0,25 Stunden. Mittags gibt es oft mehr Solarstrom als Bedarf. Kohle- und
+Gaskraftwerke können nicht so schnell weniger produzieren. Das ist ein Problem bei
+der Energiewende: mehr Anlagen, aber weniger Geld pro MWh. Man sieht es auch am
+Preis über den Tag: 2019 kostete Strom mittags und abends fast gleich viel. In den
+letzten 12 Monaten war er abends im Mittel **88 €/MWh teurer** als mittags.
 
 **Mehr Strom im Winter.** Erneuerbare und fossile Erzeugung sind beide im Herbst
 und Winter am höchsten und im Frühling und Sommer am tiefsten. Im Winter braucht
 man mehr Strom (Heizung, Licht). Der Wind ist im Winter am stärksten. Aber der
 Wind allein reicht nicht, darum laufen auch Kohle- und Gaskraftwerke mehr.
+
+**Vom Exporteur zum Importeur.** Bis 2022 hat Deutschland mehr Strom verkauft als
+gekauft (2019: 35 TWh mehr verkauft). Seit dem Atom-Aus 2023 kauft Deutschland
+mehr, als es verkauft (2024: 28 TWh mehr gekauft). Am meisten kauft es aus
+Dänemark (+62 TWh seit 2019), am meisten verkauft es nach Österreich (−105 TWh).
 
 **Handel mit den Nachbarn.** Deutschland handelt die ganze Zeit mit Dänemark,
 Frankreich, den Niederlanden, Norwegen und der Schweiz. Wenn viel Wind da ist,
@@ -148,8 +197,8 @@ aus Frankreich oder Wasserkraft aus Skandinavien.
 
 ## Technik
 
-Python (requests, pandas, pyarrow) · Apache Parquet · Power BI Desktop (Power
-Query, Sternschema, DAX)
+Python (requests, pandas, pyarrow) · Apache Parquet · Power BI Desktop als
+Power-BI-Projekt (.pbip: TMDL-Modell, PBIR-Report; Power Query, Sternschema, DAX)
 
 ## Lizenzen
 

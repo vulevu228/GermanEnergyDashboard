@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "energie-daten-DE"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "a41b3445-8c19-4415-a517-912d8cf538eb"
+  }
+}

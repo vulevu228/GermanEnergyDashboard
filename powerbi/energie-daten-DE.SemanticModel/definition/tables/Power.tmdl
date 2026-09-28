@@ -1,0 +1,116 @@
+table Power
+	lineageTag: 719bb057-74db-5d58-ab33-980e6756c710
+
+	column Date
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: 98046021-8753-5d7a-a9ab-3fba157c1f42
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Load GWh'
+		dataType: double
+		formatString: #,##0.0
+		lineageTag: 1e30c114-39be-5bc0-b60e-c42c975c3405
+		summarizeBy: sum
+		sourceColumn: Load GWh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Residual Load GWh'
+		dataType: double
+		formatString: #,##0.0
+		lineageTag: 9ada1426-844c-5d12-bebb-090b9f267adb
+		summarizeBy: sum
+		sourceColumn: Residual Load GWh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Net Import GWh'
+		dataType: double
+		formatString: #,##0.0
+		lineageTag: 0a7d62ef-89d6-5cce-b929-a7ff845d7950
+		summarizeBy: sum
+		sourceColumn: Net Import GWh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Price Sum'
+		dataType: double
+		isHidden
+		formatString: #,##0
+		lineageTag: 3e6b11fc-c23c-5a42-a829-8132c0f2d87c
+		summarizeBy: sum
+		sourceColumn: Price Sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Price Hours'
+		dataType: double
+		isHidden
+		formatString: #,##0.00
+		lineageTag: c34584ea-ba8f-5f0f-9dde-7d217c4ae879
+		summarizeBy: sum
+		sourceColumn: Price Hours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Min Price'
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 7928fde7-473c-50e7-b11b-a95f51141ec9
+		summarizeBy: none
+		sourceColumn: Min Price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Max Price'
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: e643ab6c-983b-507c-b5ed-feb53278f27d
+		summarizeBy: none
+		sourceColumn: Max Price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Negative Price Hours'
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: e3bc537c-33f8-57f8-9ee7-ea24399674c6
+		summarizeBy: sum
+		sourceColumn: Negative Price Hours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Power = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\Users\emira\Projects\GitHub-Projects\GermanEnergyDashboard\data\dashboard\power_daily.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null]),
+				    #"Renamed Columns" = Table.RenameColumns(Source, {{"date", "Date"}, {"load_gwh", "Load GWh"}, {"residual_load_gwh", "Residual Load GWh"}, {"net_import_gwh", "Net Import GWh"}, {"price_sum", "Price Sum"}, {"price_hours", "Price Hours"}, {"price_min", "Min Price"}, {"price_max", "Max Price"}, {"negative_hours", "Negative Price Hours"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns", {{"Date", type date}, {"Load GWh", type number}, {"Residual Load GWh", type number}, {"Net Import GWh", type number}, {"Price Sum", type number}, {"Price Hours", type number}, {"Min Price", type number}, {"Max Price", type number}, {"Negative Price Hours", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

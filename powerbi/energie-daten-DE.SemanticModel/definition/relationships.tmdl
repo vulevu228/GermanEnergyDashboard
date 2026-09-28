@@ -1,0 +1,20 @@
+relationship 00286178-4a81-5ef5-8ebe-ea059736ed05
+	fromColumn: Generation.Date
+	toColumn: Calendar.Date
+
+relationship 2b319c2d-b266-5342-b32d-c08df1b2c8bb
+	fromColumn: Power.Date
+	toColumn: Calendar.Date
+
+relationship 8ff056d9-1f27-5762-bc6f-26788c0d222b
+	fromColumn: Trade.Date
+	toColumn: Calendar.Date
+
+relationship a14dbc45-e2b5-51ab-9f4f-08f730204b81
+	fromColumn: 'Hourly Profile'.Month
+	toColumn: Calendar.Date
+
+relationship 2dd2b992-655f-5188-aa90-0597ca0004f8
+	fromColumn: Capacity.Month
+	toColumn: Calendar.Date
+

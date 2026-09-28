@@ -1,0 +1,103 @@
+table 'Hourly Profile'
+	lineageTag: 6f525dd0-8d0f-5671-abcf-f9ab7701beaf
+
+	column Month
+		dataType: dateTime
+		formatString: mmm yyyy
+		lineageTag: bc96976f-66e3-5b87-8a6d-965753818c4b
+		summarizeBy: none
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Hour
+		dataType: int64
+		formatString: 0
+		lineageTag: 28145c81-c990-5364-8cc8-62ab13897759
+		summarizeBy: none
+		sourceColumn: Hour
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Solar MWh'
+		dataType: double
+		isHidden
+		formatString: #,##0
+		lineageTag: 960c9166-6a3a-537e-8b81-882fd138bfbb
+		summarizeBy: sum
+		sourceColumn: Solar MWh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Wind MWh'
+		dataType: double
+		isHidden
+		formatString: #,##0
+		lineageTag: 3fcbff25-f61b-5bff-9925-66f66defaff8
+		summarizeBy: sum
+		sourceColumn: Wind MWh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Load MWh'
+		dataType: double
+		isHidden
+		formatString: #,##0
+		lineageTag: f75d99ca-0112-5415-a24e-754ddc338e3c
+		summarizeBy: sum
+		sourceColumn: Load MWh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Power Hours'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3ec782e8-23bb-5e84-9a82-17968010775d
+		summarizeBy: sum
+		sourceColumn: Power Hours
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Price Sum'
+		dataType: double
+		isHidden
+		formatString: #,##0
+		lineageTag: 16d83737-0440-5924-8f49-0f6f7d4599e9
+		summarizeBy: sum
+		sourceColumn: Price Sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Price Hours'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0514b0e5-1734-597a-bda0-22649e6dc729
+		summarizeBy: sum
+		sourceColumn: Price Hours
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Hourly Profile' = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\Users\emira\Projects\GitHub-Projects\GermanEnergyDashboard\data\dashboard\hourly_profile.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null]),
+				    #"Renamed Columns" = Table.RenameColumns(Source, {{"month", "Month"}, {"hour", "Hour"}, {"solar_mwh", "Solar MWh"}, {"wind_mwh", "Wind MWh"}, {"load_mwh", "Load MWh"}, {"power_hours", "Power Hours"}, {"price_sum", "Price Sum"}, {"price_hours", "Price Hours"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns", {{"Month", type date}, {"Hour", Int64.Type}, {"Solar MWh", type number}, {"Wind MWh", type number}, {"Load MWh", type number}, {"Power Hours", Int64.Type}, {"Price Sum", type number}, {"Price Hours", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

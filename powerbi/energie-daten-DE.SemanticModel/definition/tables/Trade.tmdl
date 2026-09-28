@@ -1,0 +1,45 @@
+table Trade
+	lineageTag: 66ff80f3-9961-5568-97ca-9f4580274116
+
+	column Date
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: 632ee859-2149-54fe-80a1-26dfd30d5d29
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Country
+		dataType: string
+		lineageTag: 630728f1-0a5c-534b-a4d2-f3434b1431ab
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Net GWh'
+		dataType: double
+		formatString: #,##0.0
+		lineageTag: 2011b674-e005-577c-b026-0c3817e5bbf9
+		summarizeBy: sum
+		sourceColumn: Net GWh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Trade = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\Users\emira\Projects\GitHub-Projects\GermanEnergyDashboard\data\dashboard\trade_daily.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null]),
+				    #"Renamed Columns" = Table.RenameColumns(Source, {{"date", "Date"}, {"country", "Country"}, {"net_gwh", "Net GWh"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns", {{"Date", type date}, {"Country", type text}, {"Net GWh", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

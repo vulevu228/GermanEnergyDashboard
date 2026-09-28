@@ -1,0 +1,449 @@
+table _Measures
+	lineageTag: fda32a8e-c155-5d7d-8fd0-ca16d3134604
+
+	measure 'Generation TWh' = DIVIDE(SUM('Generation'[GWh]), 1000)
+		formatString: #,##0
+		displayFolder: 1 Generation
+		lineageTag: a71b7df9-b558-51a4-a28a-e0df1649d7d8
+
+	measure 'Renewables TWh' = CALCULATE([Generation TWh], 'Generation'[Group] = "Renewables")
+		formatString: #,##0
+		displayFolder: 1 Generation
+		lineageTag: 09e902d0-36a9-5cac-a41e-0f099c011a94
+
+	measure 'Fossil TWh' = CALCULATE([Generation TWh], 'Generation'[Group] = "Fossil")
+		formatString: #,##0
+		displayFolder: 1 Generation
+		lineageTag: 5518b8e7-329b-5acb-bdd4-79cde1a4fcb8
+
+	measure 'Nuclear TWh' = CALCULATE([Generation TWh], 'Generation'[Group] = "Nuclear") + 0
+		formatString: #,##0
+		displayFolder: 1 Generation
+		lineageTag: 7f004c66-4c91-5e10-88b0-4a2cf0c5930d
+
+	measure 'Renewable Share' = DIVIDE([Renewables TWh], [Generation TWh])
+		formatString: 0.0%
+		displayFolder: 1 Generation
+		lineageTag: 34a860e1-e202-5eb4-a239-2efd3f54833b
+
+	measure 'Renewable Share Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE([Renewable Share], FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE([Renewable Share], FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: " & FORMAT(L, "0%") & "",
+			    "first yr " & FORMAT(F, "0%") & "  →  last yr " & FORMAT(L, "0%") & "")
+		displayFolder: 1 Generation
+		lineageTag: 6417c495-b6eb-5716-9606-2e4439c2b339
+
+	measure 'Nuclear Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE([Nuclear TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE([Nuclear TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: " & FORMAT(L, "0") & "",
+			    "first yr " & FORMAT(F, "0") & "  →  last yr " & FORMAT(L, "0") & "")
+		displayFolder: 1 Generation
+		lineageTag: 9979ceb4-b27b-58d2-af05-4d8fde5147fb
+
+	measure 'Source Share' = DIVIDE([Generation TWh], CALCULATE([Generation TWh], ALL('Generation'[Source], 'Generation'[Source Order])))
+		formatString: 0.0%
+		displayFolder: 1 Generation
+		lineageTag: ec369b79-6aa8-5699-9a41-0ed2220f4dbc
+
+	measure 'Solar TWh' = CALCULATE([Generation TWh], 'Generation'[Source] = "Solar") + 0
+		formatString: #,##0
+		displayFolder: 1 Generation
+		lineageTag: 9ec94797-1c8d-5de2-959b-9734e3966a23
+
+	measure 'Solar Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE([Solar TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE([Solar TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: " & FORMAT(L, "0") & "",
+			    "first yr " & FORMAT(F, "0") & "  →  last yr " & FORMAT(L, "0") & "")
+		displayFolder: 1 Generation
+		lineageTag: 1547cad4-c287-5ac6-ab88-91f600036b35
+
+	measure 'Wind Onshore TWh' = CALCULATE([Generation TWh], 'Generation'[Source] = "Wind onshore") + 0
+		formatString: #,##0
+		displayFolder: 1 Generation
+		lineageTag: 74d18ae5-08b8-535a-9b77-e904269f47bc
+
+	measure 'Wind Onshore Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE([Wind Onshore TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE([Wind Onshore TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: " & FORMAT(L, "0") & "",
+			    "first yr " & FORMAT(F, "0") & "  →  last yr " & FORMAT(L, "0") & "")
+		displayFolder: 1 Generation
+		lineageTag: 9677a376-43d2-5f32-9e09-5a48b5d91e17
+
+	measure 'Wind Offshore TWh' = CALCULATE([Generation TWh], 'Generation'[Source] = "Wind offshore") + 0
+		formatString: #,##0
+		displayFolder: 1 Generation
+		lineageTag: c1a8e0e1-8189-516a-b1e3-a2a5f4293822
+
+	measure 'Wind Offshore Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE([Wind Offshore TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE([Wind Offshore TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: " & FORMAT(L, "0") & "",
+			    "first yr " & FORMAT(F, "0") & "  →  last yr " & FORMAT(L, "0") & "")
+		displayFolder: 1 Generation
+		lineageTag: a7c86040-9a63-58f5-8f8e-250bd32157ba
+
+	measure 'Biomass Hydro TWh' = CALCULATE([Generation TWh], 'Generation'[Source] = "Biomass & hydro") + 0
+		formatString: #,##0
+		displayFolder: 1 Generation
+		lineageTag: b8399d0c-ddd4-5ad0-9b4a-57dcd953cbf3
+
+	measure 'Biomass Hydro Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE([Biomass Hydro TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE([Biomass Hydro TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: " & FORMAT(L, "0") & "",
+			    "first yr " & FORMAT(F, "0") & "  →  last yr " & FORMAT(L, "0") & "")
+		displayFolder: 1 Generation
+		lineageTag: 7eed54fa-9fc6-5423-9e8a-2c990f7c1f14
+
+	measure 'Coal TWh' = CALCULATE([Generation TWh], 'Generation'[Source] = "Coal") + 0
+		formatString: #,##0
+		displayFolder: 1 Generation
+		lineageTag: a40f14bc-d528-55a6-a85a-a0a08a27a4cc
+
+	measure 'Coal Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE([Coal TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE([Coal TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: " & FORMAT(L, "0") & "",
+			    "first yr " & FORMAT(F, "0") & "  →  last yr " & FORMAT(L, "0") & "")
+		displayFolder: 1 Generation
+		lineageTag: 6d7a1844-56b7-513a-8595-d97c37ae0019
+
+	measure 'Gas TWh' = CALCULATE([Generation TWh], 'Generation'[Source] = "Gas") + 0
+		formatString: #,##0
+		displayFolder: 1 Generation
+		lineageTag: 9122f653-e724-5da9-92de-f80c8dde708b
+
+	measure 'Gas Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE([Gas TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE([Gas TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: " & FORMAT(L, "0") & "",
+			    "first yr " & FORMAT(F, "0") & "  →  last yr " & FORMAT(L, "0") & "")
+		displayFolder: 1 Generation
+		lineageTag: 5ff5691d-2f12-5dc7-9c1f-14341f9d09d2
+
+	measure 'Wind TWh' = [Wind Onshore TWh] + [Wind Offshore TWh]
+		formatString: #,##0
+		displayFolder: 1 Generation
+		lineageTag: 39b0be26-6d54-5bb5-bf0f-161575f09d2f
+
+	measure 'Average Solar GW' = DIVIDE(SUM('Hourly Profile'[Solar MWh]), SUM('Hourly Profile'[Power Hours])) / 1000
+		formatString: 0.0
+		displayFolder: 2 Daily profile
+		lineageTag: 4e673e25-512e-5395-8ba8-342423086331
+
+	measure 'Average Wind GW' = DIVIDE(SUM('Hourly Profile'[Wind MWh]), SUM('Hourly Profile'[Power Hours])) / 1000
+		formatString: 0.0
+		displayFolder: 2 Daily profile
+		lineageTag: 99a72352-80eb-5504-b878-d0476cf438b9
+
+	measure 'Average Load GW' = DIVIDE(SUM('Hourly Profile'[Load MWh]), SUM('Hourly Profile'[Power Hours])) / 1000
+		formatString: 0.0
+		displayFolder: 2 Daily profile
+		lineageTag: b7122b7a-ad38-547a-b1b0-28168819c43e
+
+	measure 'Hourly Price' = DIVIDE(SUM('Hourly Profile'[Price Sum]), SUM('Hourly Profile'[Price Hours]))
+		formatString: 0
+		displayFolder: 2 Daily profile
+		lineageTag: 74d66e89-1013-5e85-a5b3-25d486c61d90
+
+	measure 'Evening Price' = CALCULATE([Hourly Price], 'Hourly Profile'[Hour] IN {18, 19, 20})
+		formatString: 0
+		displayFolder: 2 Daily profile
+		lineageTag: 4a71b064-135d-5890-ad64-10be17b83074
+
+	measure 'Midday Price' = CALCULATE([Hourly Price], 'Hourly Profile'[Hour] IN {11, 12, 13, 14})
+		formatString: 0
+		displayFolder: 2 Daily profile
+		lineageTag: b9b2d42b-3705-5735-a794-99def2b98fd6
+
+	measure 'Evening Premium' = [Evening Price] - [Midday Price]
+		formatString: €#,##0
+		displayFolder: 2 Daily profile
+		lineageTag: b0feb240-7d5f-553d-a026-a579beda2566
+
+	measure 'Evening Premium Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE([Evening Premium], FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE([Evening Premium], FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: €" & FORMAT(L, "0") & "",
+			    "first yr €" & FORMAT(F, "0") & "  →  last yr €" & FORMAT(L, "0") & "")
+		displayFolder: 2 Daily profile
+		lineageTag: d3e28457-d5d6-5848-bf77-9be0771b7522
+
+	measure 'Average Price' = DIVIDE(SUM('Power'[Price Sum]), SUM('Power'[Price Hours]))
+		formatString: €#,##0
+		displayFolder: 3 Prices
+		lineageTag: ee2e93ec-d39e-5a18-962d-1619de74dc89
+
+	measure 'Average Price Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE([Average Price], FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE([Average Price], FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: €" & FORMAT(L, "0") & "",
+			    "first yr €" & FORMAT(F, "0") & "  →  last yr €" & FORMAT(L, "0") & "")
+		displayFolder: 3 Prices
+		lineageTag: 71e9ad36-a23f-5703-b858-fb067fb4ed2b
+
+	measure 'Negative Price Hours' = ROUND(SUM('Power'[Negative Price Hours]), 0) + 0
+		formatString: #,##0
+		displayFolder: 3 Prices
+		lineageTag: f767450a-5c53-58bf-a2e6-16543ff970ec
+
+	measure 'Negative Hours Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE(SUM('Power'[Negative Price Hours]), FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE(SUM('Power'[Negative Price Hours]), FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: " & FORMAT(L, "#,##0") & " h",
+			    "first yr " & FORMAT(F, "#,##0") & "  →  last yr " & FORMAT(L, "#,##0") & " h")
+		displayFolder: 3 Prices
+		lineageTag: 5998be6f-7620-57a1-acaa-aee6b1f4c5ff
+
+	measure 'Highest Price' = MAX('Power'[Max Price])
+		formatString: €#,##0
+		displayFolder: 3 Prices
+		lineageTag: 137fd60c-e5fd-5f1f-835d-5450c02f0ff5
+
+	measure 'Highest Price Delta Text' =
+			VAR V = [Highest Price]
+			RETURN "one hour on " & FORMAT(CALCULATE(MIN('Power'[Date]), 'Power'[Max Price] = V), "d mmm yyyy")
+		displayFolder: 3 Prices
+		lineageTag: 4c7f0f30-71e2-5b5d-b32f-ebff00ec7253
+
+	measure 'Lowest Price' = MIN('Power'[Min Price])
+		formatString: €#,##0;-€#,##0
+		displayFolder: 3 Prices
+		lineageTag: acf78fee-50b7-515a-8368-b3be81d66fa8
+
+	measure 'Lowest Price Delta Text' =
+			VAR V = [Lowest Price]
+			RETURN "on " & FORMAT(CALCULATE(MIN('Power'[Date]), 'Power'[Min Price] = V), "d mmm yyyy")
+		displayFolder: 3 Prices
+		lineageTag: ca2b19d8-d23a-58ee-a271-2e7acd5e869f
+
+	measure 'Most Expensive Month' =
+			VAR T = TOPN(1, VALUES('Calendar'[Month Start]), [Average Price], DESC)
+			RETURN FORMAT(MAXX(T, 'Calendar'[Month Start]), "mmm yyyy")
+		displayFolder: 3 Prices
+		lineageTag: 738ed143-5394-53b5-badf-a75c43556a14
+
+	measure 'Most Expensive Month Delta Text' =
+			VAR T = TOPN(1, VALUES('Calendar'[Month Start]), [Average Price], DESC)
+			RETURN "€" & FORMAT(MAXX(T, [Average Price]), "0") & " a MWh, vs €34 pre-crisis"
+		displayFolder: 3 Prices
+		lineageTag: ed939298-4df7-53ba-b334-dc7f21eb9d3e
+
+	measure 'Net Import TWh' = DIVIDE(SUM('Power'[Net Import GWh]), 1000)
+		formatString: +#,##0;-#,##0;0
+		displayFolder: 4 Trade
+		lineageTag: ee117092-5f7e-5bae-8b3c-fc32179206bf
+
+	measure 'Net Import Delta Text' =
+			VAR S = MIN('Calendar'[Date])
+			VAR E = MAX('Calendar'[Date])
+			VAR F = CALCULATE([Net Import TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] >= S && 'Calendar'[Date] < S + 365))
+			VAR L = CALCULATE([Net Import TWh], FILTER(ALL('Calendar'), 'Calendar'[Date] > E - 365 && 'Calendar'[Date] <= E))
+			RETURN IF(E - S < 700, "last 12 months: " & FORMAT(L, "+0;-0;0") & "",
+			    "first yr " & FORMAT(F, "+0;-0;0") & "  →  last yr " & FORMAT(L, "+0;-0;0") & "")
+		displayFolder: 4 Trade
+		lineageTag: 8604c463-7fce-558b-924e-3261001bbef3
+
+	measure 'Imports TWh' =
+			VAR V = [Net Import TWh]
+			RETURN IF(V > 0, V)
+		formatString: #,##0.0
+		displayFolder: 4 Trade
+		lineageTag: c4945802-bd0b-5d05-93f2-343432669622
+
+	measure 'Exports TWh' =
+			VAR V = [Net Import TWh]
+			RETURN IF(V < 0, V)
+		formatString: #,##0.0
+		displayFolder: 4 Trade
+		lineageTag: a1b076d8-6264-5704-93ff-25df46bf4394
+
+	measure 'Country Net TWh' = DIVIDE(SUM('Trade'[Net GWh]), 1000)
+		formatString: +#,##0.0;-#,##0.0;0
+		displayFolder: 4 Trade
+		lineageTag: de31ce40-cefa-5bf4-a34f-23eaa8499998
+
+	measure 'Country Bar Color' = IF([Country Net TWh] >= 0, "#2A93D2", "#BA880C")
+		displayFolder: 4 Trade
+		lineageTag: 96c503d7-d5f7-589f-bc94-547a0818e4a3
+
+	measure 'Trade Direction Text' =
+			VAR V = [Net Import TWh]
+			RETURN IF(V >= 0, "Germany bought more than it sold", "Germany sold more than it bought")
+		displayFolder: 4 Trade
+		lineageTag: e81877cf-04c1-5ed2-acac-b7344feba27f
+
+	measure 'Solar GW' =
+			VAR Mo = CALCULATE(MAX('Capacity'[Month]), 'Capacity'[Technology] = "Solar")
+			RETURN CALCULATE(SUM('Capacity'[GW]), 'Capacity'[Technology] = "Solar", 'Capacity'[Month] = Mo)
+		formatString: #,##0.0
+		displayFolder: 5 Capacity
+		lineageTag: 54937e7b-0c2c-5d4a-9123-02eef6c9cc7e
+
+	measure 'Solar Start GW' =
+			VAR Mo = CALCULATE(MIN('Capacity'[Month]), 'Capacity'[Technology] = "Solar")
+			RETURN CALCULATE(SUM('Capacity'[GW]), 'Capacity'[Technology] = "Solar", 'Capacity'[Month] = Mo)
+		formatString: #,##0.0
+		displayFolder: 5 Capacity
+		lineageTag: c533922a-89e9-5e1d-b5f0-ca8b7117976d
+
+	measure 'Solar Target GW' = CALCULATE(SUM('Capacity Targets'[GW]), 'Capacity Targets'[Technology] = "Solar target", 'Capacity Targets'[Year] = 2030, ALL('Capacity Targets'))
+		formatString: #,##0
+		displayFolder: 5 Capacity
+		lineageTag: 5c46506d-4b0f-5adc-aa8e-7526007271a0
+
+	measure 'Solar GW Delta Text' = FORMAT([Solar Start GW], "0") & " GW at start  |  2030 goal " & FORMAT([Solar Target GW], "0")
+		displayFolder: 5 Capacity
+		lineageTag: fe4d52c7-9505-51b2-916e-d43e6d7d49b5
+
+	measure 'Wind Onshore GW' =
+			VAR Mo = CALCULATE(MAX('Capacity'[Month]), 'Capacity'[Technology] = "Wind onshore")
+			RETURN CALCULATE(SUM('Capacity'[GW]), 'Capacity'[Technology] = "Wind onshore", 'Capacity'[Month] = Mo)
+		formatString: #,##0.0
+		displayFolder: 5 Capacity
+		lineageTag: 959ae90c-5be0-5823-aa78-323dec5c4070
+
+	measure 'Wind Onshore Start GW' =
+			VAR Mo = CALCULATE(MIN('Capacity'[Month]), 'Capacity'[Technology] = "Wind onshore")
+			RETURN CALCULATE(SUM('Capacity'[GW]), 'Capacity'[Technology] = "Wind onshore", 'Capacity'[Month] = Mo)
+		formatString: #,##0.0
+		displayFolder: 5 Capacity
+		lineageTag: d87d63c6-8d43-572f-b7c6-2e1abac69c1b
+
+	measure 'Wind Onshore Target GW' = CALCULATE(SUM('Capacity Targets'[GW]), 'Capacity Targets'[Technology] = "Wind onshore target", 'Capacity Targets'[Year] = 2030, ALL('Capacity Targets'))
+		formatString: #,##0
+		displayFolder: 5 Capacity
+		lineageTag: 0809ebfe-ceca-5922-945f-c2548c1533c0
+
+	measure 'Wind Onshore GW Delta Text' = FORMAT([Wind Onshore Start GW], "0") & " GW at start  |  2030 goal " & FORMAT([Wind Onshore Target GW], "0")
+		displayFolder: 5 Capacity
+		lineageTag: 2d012e13-0fc6-5556-a777-768f2406bef6
+
+	measure 'Wind Offshore GW' =
+			VAR Mo = CALCULATE(MAX('Capacity'[Month]), 'Capacity'[Technology] = "Wind offshore")
+			RETURN CALCULATE(SUM('Capacity'[GW]), 'Capacity'[Technology] = "Wind offshore", 'Capacity'[Month] = Mo)
+		formatString: #,##0.0
+		displayFolder: 5 Capacity
+		lineageTag: e14ca86c-f8c2-50b3-a20e-9195c7482b1a
+
+	measure 'Wind Offshore Start GW' =
+			VAR Mo = CALCULATE(MIN('Capacity'[Month]), 'Capacity'[Technology] = "Wind offshore")
+			RETURN CALCULATE(SUM('Capacity'[GW]), 'Capacity'[Technology] = "Wind offshore", 'Capacity'[Month] = Mo)
+		formatString: #,##0.0
+		displayFolder: 5 Capacity
+		lineageTag: 269dd5f6-b80c-5de5-89f7-484591f8ae19
+
+	measure 'Wind Offshore Target GW' = CALCULATE(SUM('Capacity Targets'[GW]), 'Capacity Targets'[Technology] = "Wind offshore target", 'Capacity Targets'[Year] = 2030, ALL('Capacity Targets'))
+		formatString: #,##0
+		displayFolder: 5 Capacity
+		lineageTag: 247e665f-756f-5a22-9e8a-793cad72ffeb
+
+	measure 'Wind Offshore GW Delta Text' = FORMAT([Wind Offshore Start GW], "0") & " GW at start  |  2030 goal " & FORMAT([Wind Offshore Target GW], "0")
+		displayFolder: 5 Capacity
+		lineageTag: 97cc5a54-4afd-5d7a-bd4f-bc6850ca2795
+
+	measure 'Battery GW' =
+			VAR Mo = CALCULATE(MAX('Capacity'[Month]), 'Capacity'[Technology] = "Battery storage")
+			RETURN CALCULATE(SUM('Capacity'[GW]), 'Capacity'[Technology] = "Battery storage", 'Capacity'[Month] = Mo)
+		formatString: #,##0.0
+		displayFolder: 5 Capacity
+		lineageTag: ec696683-b50c-5c2c-996c-6ff7cbbc99a6
+
+	measure 'Battery Start GW' =
+			VAR Mo = CALCULATE(MIN('Capacity'[Month]), 'Capacity'[Technology] = "Battery storage")
+			RETURN CALCULATE(SUM('Capacity'[GW]), 'Capacity'[Technology] = "Battery storage", 'Capacity'[Month] = Mo)
+		formatString: #,##0.0
+		displayFolder: 5 Capacity
+		lineageTag: 26360251-5ea1-5d0c-9c4e-8f2acea38d8e
+
+	measure 'Battery GW Delta Text' = FORMAT([Battery Start GW], "0.0") & " GW at start of the range"
+		displayFolder: 5 Capacity
+		lineageTag: 721ca93e-1c98-5668-a73a-5216c6271983
+
+	measure 'Capacity GW' = SUM('Capacity'[GW])
+		formatString: #,##0.0
+		displayFolder: 5 Capacity
+		lineageTag: 25a6a58b-643b-52cb-a17f-6c6431d027d1
+
+	measure 'Installed Now GW' =
+			VAR Tn = SELECTEDVALUE('Capacity'[Technology])
+			VAR Mo = CALCULATE(MAX('Capacity'[Month]), ALLSELECTED('Capacity'[Month]))
+			RETURN IF(Tn IN {"Solar", "Wind onshore", "Wind offshore"}, CALCULATE(SUM('Capacity'[GW]), 'Capacity'[Month] = Mo))
+		formatString: #,##0
+		displayFolder: 5 Capacity
+		lineageTag: c6819927-081b-5bd7-a3bd-da2f76787630
+
+	measure 'Goal 2030 GW' =
+			VAR Tn = SELECTEDVALUE('Capacity'[Technology])
+			RETURN IF(Tn IN {"Solar", "Wind onshore", "Wind offshore"}, CALCULATE(SUM('Capacity Targets'[GW]), 'Capacity Targets'[Technology] = Tn & " target", 'Capacity Targets'[Year] = 2030, ALL('Capacity Targets')))
+		formatString: #,##0
+		displayFolder: 5 Capacity
+		lineageTag: c27d073d-5144-5ad1-a233-61e6b8f434c6
+
+	measure 'Coal Plants GW' =
+			VAR Yr = CALCULATE(MAX('Capacity Targets'[Year]), 'Capacity Targets'[Technology] IN {"Lignite", "Hard coal"}, ALL('Capacity Targets'))
+			RETURN CALCULATE(SUM('Capacity Targets'[GW]), 'Capacity Targets'[Technology] IN {"Lignite", "Hard coal"}, 'Capacity Targets'[Year] = Yr, ALL('Capacity Targets'))
+		formatString: #,##0.0
+		displayFolder: 5 Capacity
+		lineageTag: afd989b0-827e-56d3-abb2-5fdd737887b7
+
+	measure 'Coal Plants Delta Text' =
+			VAR B = CALCULATE(SUM('Capacity Targets'[GW]), 'Capacity Targets'[Technology] IN {"Lignite", "Hard coal"}, 'Capacity Targets'[Year] = 2019, ALL('Capacity Targets'))
+			RETURN FORMAT(B, "0") & " GW in 2019  |  yearly data"
+		displayFolder: 5 Capacity
+		lineageTag: ed2fcaf6-8400-5854-889c-bf6648bcaabd
+
+	measure 'Data Window Text' =
+			VAR A = MIN('Calendar'[Date])
+			VAR B = MAX('Calendar'[Date])
+			RETURN "Showing " & FORMAT(A, "d mmm yyyy") & " to " & FORMAT(B, "d mmm yyyy") & "  |  " & FORMAT(B - A + 1, "#,##0") & " days"
+		displayFolder: 6 Labels
+		lineageTag: 1962ae4a-c6da-5372-ab6a-dcb10372dd3c
+
+	column Value
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1d20fe5b-ec51-5270-8dc8-4133d9cc5ac3
+		summarizeBy: none
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				  Source = #table({"Value"}, {{0}}),
+				  #"Changed Type" = Table.TransformColumnTypes(Source, {{"Value", Int64.Type}})
+				in
+				  #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

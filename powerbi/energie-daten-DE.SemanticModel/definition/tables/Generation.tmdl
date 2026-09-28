@@ -1,0 +1,75 @@
+table Generation
+	lineageTag: 01f46765-e443-5d38-9e28-29f03f22e34a
+
+	column Date
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: 603c9091-8a21-5c3d-941a-a626ac0860ec
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Source
+		dataType: string
+		lineageTag: c027358b-6314-5f2f-97d6-55cf485187dc
+		summarizeBy: none
+		sourceColumn: Source
+		sortByColumn: 'Source Order'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Group
+		dataType: string
+		lineageTag: eabc6702-faeb-5590-b13d-724413a5e33c
+		summarizeBy: none
+		sourceColumn: Group
+		sortByColumn: 'Group Order'
+
+		annotation SummarizationSetBy = Automatic
+
+	column GWh
+		dataType: double
+		formatString: #,##0.0
+		lineageTag: c0653b15-4663-528e-a995-223e5359ae04
+		summarizeBy: sum
+		sourceColumn: GWh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Source Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b66582d4-cf75-5d87-a941-406f56bb2854
+		summarizeBy: none
+		sourceColumn: Source Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Group Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 212344c7-c56d-54c4-a473-fd053dc653f2
+		summarizeBy: none
+		sourceColumn: Group Order
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Generation = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\Users\emira\Projects\GitHub-Projects\GermanEnergyDashboard\data\dashboard\generation_daily.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null]),
+				    #"Renamed Columns" = Table.RenameColumns(Source, {{"date", "Date"}, {"source", "Source"}, {"group", "Group"}, {"gwh", "GWh"}, {"source_order", "Source Order"}, {"group_order", "Group Order"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns", {{"Date", type date}, {"Source", type text}, {"Group", type text}, {"GWh", type number}, {"Source Order", Int64.Type}, {"Group Order", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
